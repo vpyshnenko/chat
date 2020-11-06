@@ -1,0 +1,5 @@
+* DONE decompose Server
+* decompose Client
+* add TimeService
+* inject RxJs for Subject
+* write tests
