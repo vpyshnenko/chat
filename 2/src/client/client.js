@@ -8,14 +8,16 @@ export class Client {
     this.password = password;
     this.messages = [];
     this.listeners = [];
-    this.services = services;
+    this.services = { sessionService, messageService };
   }
   //TODO disconnect
   connect() {
-    this.sessionId = this.services.sessionService.connect({
+    const { sessionId } = this.services.sessionService.connect({
       username: this.username,
       password: this.password,
     });
+    this.sessionId = sessionId;
+
     this.requestMessageStream();
   }
   requestMessageStream() {
@@ -31,10 +33,13 @@ export class Client {
       throw new Error("not connected");
     }
     const message = { to, body };
-    this.messageService.forward({ sessionId, ...message });
+    this.services.messageService.forward({
+      sessionId: this.sessionId,
+      ...message,
+    });
     this.saveMessage(message);
   }
-  saveMessage() {
+  saveMessage(message) {
     this.messages.push(message);
   }
   getMessages(username) {

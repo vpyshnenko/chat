@@ -1,4 +1,4 @@
-class UserService {
+export class UserService {
   constructor() {
     this.users = {};
   }

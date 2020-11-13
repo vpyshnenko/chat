@@ -1,9 +1,9 @@
-class SessionService {
+export class SessionService {
   constructor({ services: { userService } }) {
     this.sessions = {};
-    this.services = services;
+    this.services = { userService };
   }
-  genSesssionId(username, timestamp) {
+  genSessionId(username, timestamp) {
     //some crypto expected here
     return `${username}_${timestamp}`;
   }
@@ -11,7 +11,7 @@ class SessionService {
   connect({ username, password }) {
     this.services.userService.authorize({ username, password });
     const startAt = Date.now();
-    const sessionId = genSessionId(username, startAt);
+    const sessionId = this.genSessionId(username, startAt);
     this.sessions[sessionId] = { username, startAt };
     return { sessionId };
   }
@@ -19,6 +19,13 @@ class SessionService {
     if (!(sessionId in this.sessions)) {
       throw new Error("session is not valid");
     }
+  }
+  getUser(sessionId) {
+    const user = this.sessions[sessionId];
+    if (user) {
+      return user.username;
+    }
+    return null;
   }
   //TODO handle session expiration
 }
