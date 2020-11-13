@@ -10,6 +10,7 @@ export class MessageService {
     const message = { to, body };
     this.services.sessionService.validate(sessionId);
     const from = this.services.sessionService.getUser(sessionId);
+    message.from = from;
     if (!this.services.userService.isRegistered(to)) {
       throw new Error("unknown receiver");
     }

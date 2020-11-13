@@ -8,12 +8,15 @@ export class SessionService {
     return `${username}_${timestamp}`;
   }
   //TODO disconnect
-  connect({ username, password }) {
+  openSession({ username, password }) {
     this.services.userService.authorize({ username, password });
     const startAt = Date.now();
     const sessionId = this.genSessionId(username, startAt);
     this.sessions[sessionId] = { username, startAt };
     return { sessionId };
+  }
+  closeSession({ sessionId }) {
+    delete this.sessions[sessionId];
   }
   validate(sessionId) {
     if (!(sessionId in this.sessions)) {

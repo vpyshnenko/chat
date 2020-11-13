@@ -11,8 +11,16 @@ export class Client {
     this.services = { sessionService, messageService };
   }
   //TODO disconnect
+  // connect_() {
+  //   clientAuthService
+  //     .auth({ username: this.username, password: this.password })
+  //     .then(({ sessionId }) => {
+  // 	this.sessionId = sessionId
+  //       clientMessageService.messages$({sessionId}).subscribe
+  //     });
+  // }
   connect() {
-    const { sessionId } = this.services.sessionService.connect({
+    const { sessionId } = this.services.sessionService.openSession({
       username: this.username,
       password: this.password,
     });
@@ -20,8 +28,16 @@ export class Client {
 
     this.requestMessageStream();
   }
+  disconnect() {
+    this.subscription.unsubscribe();
+    this.services.sessionService.closeSession({ sessionId: this.sessionId });
+    this.sessionId = null;
+  }
   requestMessageStream() {
-    this.services.messageService
+    if (!this.sessionId) {
+      throw new Error("not connected");
+    }
+    this.subscription = this.services.messageService
       .getMessageStream({ sessionId: this.sessionId })
       .subscribe((message) => {
         this.saveMessage(message);
@@ -30,7 +46,8 @@ export class Client {
   }
   send({ to, body }) {
     if (!this.sessionId) {
-      throw new Error("not connected");
+      // throw new Error("not connected");
+      return Promise.reject(new Error("not connected"));
     }
     const message = { to, body };
     this.services.messageService.forward({

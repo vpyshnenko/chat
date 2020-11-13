@@ -1,4 +1,5 @@
 * DONE decompose Server
+* replace sync calls (send, ...) to async, namely return Promises
 * decompose Client
 * add TimeService
 * inject RxJs for Subject

@@ -15,13 +15,26 @@ const messageService = (window.mS = new MessageService({
   services: { userService, sessionService },
 }));
 
-const c1 = new Client({ services: { sessionService, messageService }, ...u1 });
-const c2 = new Client({ services: { sessionService, messageService }, ...u2 });
+const c1 = (window.c1 = new Client({
+  services: { sessionService, messageService },
+  ...u1,
+}));
+c1.onMessage((msg) => console.log("c1 incoming message: ", msg));
+
+const c2 = (window.c2 = new Client({
+  services: { sessionService, messageService },
+  ...u2,
+}));
+c2.onMessage((msg) => console.log("c2 incoming message: ", msg));
+
+const c3 = (window.c3 = new Client({
+  services: { sessionService, messageService },
+  ...u2,
+}));
+c3.onMessage((msg) => console.log("c3 incoming message: ", msg));
 
 c1.connect();
-c1.onMessage((msg) => console.log("c1 incoming message: ", msg));
-c2.onMessage((msg) => console.log("c2 incoming message: ", msg));
-c1.send({ to: u2.username, body: "Hello Alice" });
+c1.send({ to: u2.username, body: "Hello Bob" });
 c1.send({ to: u2.username, body: "How are you?" });
 c2.connect();
 c2.send({ to: u1.username, body: "Hi, I'm ok" });
