@@ -1,5 +1,6 @@
 * DONE decompose Server
 * replace sync calls (send, ...) to async, namely return Promises
+* support multiple connections from the same user (now any next connection from the same user overwrite previos)
 * decompose Client
 * add TimeService
 * inject RxJs for Subject
