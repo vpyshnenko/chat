@@ -49,7 +49,7 @@ test("c2 is not connected; c1 successfuly send message to c2; c2 connects and re
   await c1.send({ to: u2, body: "Hello" });
   await c2.connect();
 });
-test.only("c1 send msg to c2; c2 sends to c1; c1 disconnects; c1 connects and receives ", async (done) => {
+test("c1 send msg to c2; c2 sends to c1; c1 disconnects; c1 connects and receives his own whole message history ", async (done) => {
   expect.assertions(2);
   const { u1, u2, c1, c2 } = setup();
   await Promise.all([c1.connect(), c2.connect()]);
