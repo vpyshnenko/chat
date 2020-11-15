@@ -6,39 +6,34 @@ export class MessageService {
     this.messageStreams = {};
     this.services = { userService, sessionService };
   }
-  forward({ sessionId, to, body }) {
-    const message = { to, body };
-    this.services.sessionService.validate(sessionId);
-    const from = this.services.sessionService.getUser(sessionId);
+  // message = {to, body}
+  async forward({ sessionId, message }) {
+    const { username: from } = await this.services.sessionService.getUser({
+      sessionId,
+    });
     message.from = from;
-    if (!this.services.userService.isRegistered(to)) {
-      throw new Error("unknown receiver");
-    }
-    if (to in this.messageStreams) {
-      this.messageStreams[to].next(message);
-    } else {
-      this.pushToDelayedMessages(to, message);
-    }
-  }
-  getMessageStream({ sessionId }) {
-    this.services.sessionService.validate(sessionId);
-    const username = this.services.sessionService.getUser(sessionId);
-    const messageStream = new ReplaySubject();
-    this.messageStreams[username] = messageStream;
-    this.deliverDelayedMessages(username, messageStream);
-    return messageStream;
-  }
-  deliverDelayedMessages(username, messageStream) {
-    if (username in this.delayedMessages) {
-      this.delayedMessages[username].forEach((message) => {
-        messageStream.next(message);
-      });
+    this.pushMessageToStream(from, message);
+    const { to } = message;
+    if (to !== from) {
+      if (!(await this.services.userService.isRegistered({ username: to }))) {
+        throw new Error("unknown receiver");
+      }
+      this.pushMessageToStream(to, message);
     }
   }
-  pushToDelayedMessages(username, message) {
-    if (!(username in this.delayedMessages)) {
-      this.delayedMessages[username] = [];
+  pushMessageToStream(to, message) {
+    if (!(to in this.messageStreams)) {
+      this.messageStreams[to] = new ReplaySubject();
     }
-    this.delayedMessages[username].push(message);
+    this.messageStreams[to].next(message);
+  }
+  async getMessageStream({ sessionId }) {
+    const { username } = await this.services.sessionService.getUser({
+      sessionId,
+    });
+    if (!(username in this.messageStreams)) {
+      this.messageStreams[username] = new ReplaySubject();
+    }
+    return this.messageStreams[username];
   }
 }

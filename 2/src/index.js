@@ -32,9 +32,10 @@ const c3 = (window.c3 = new Client({
   ...u2,
 }));
 c3.onMessage((msg) => console.log("c3 incoming message: ", msg));
-
-c1.connect();
-c1.send({ to: u2.username, body: "Hello Bob" });
-c1.send({ to: u2.username, body: "How are you?" });
-c2.connect();
-c2.send({ to: u1.username, body: "Hi, I'm ok" });
+(async () => {
+  await c1.connect();
+  await c1.send({ to: u2.username, body: "Hello Bob" });
+  await c1.send({ to: u2.username, body: "How are you?" });
+  await c2.connect();
+  await c2.send({ to: u1.username, body: "Hi, I'm ok" });
+})();

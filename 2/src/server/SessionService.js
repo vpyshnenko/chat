@@ -8,27 +8,26 @@ export class SessionService {
     return `${username}_${timestamp}`;
   }
   //TODO disconnect
-  openSession({ username, password }) {
-    this.services.userService.authorize({ username, password });
+  async openSession({ username, password }) {
+    await this.services.userService.authorize({ username, password });
     const startAt = Date.now();
     const sessionId = this.genSessionId(username, startAt);
     this.sessions[sessionId] = { username, startAt };
     return { sessionId };
   }
-  closeSession({ sessionId }) {
+  async closeSession({ sessionId }) {
+    await this.validate({ sessionId });
     delete this.sessions[sessionId];
   }
-  validate(sessionId) {
+  async validate({ sessionId }) {
     if (!(sessionId in this.sessions)) {
       throw new Error("session is not valid");
     }
   }
-  getUser(sessionId) {
-    const user = this.sessions[sessionId];
-    if (user) {
-      return user.username;
-    }
-    return null;
+  async getUser({ sessionId }) {
+    await this.validate({ sessionId });
+    const { username } = this.sessions[sessionId];
+    return { username };
   }
   //TODO handle session expiration
 }

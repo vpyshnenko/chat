@@ -9,6 +9,7 @@ export class Client {
     this.messages = [];
     this.listeners = [];
     this.services = { sessionService, messageService };
+    this.sessionId = null;
   }
   //TODO disconnect
   // connect_() {
@@ -19,7 +20,39 @@ export class Client {
   //       clientMessageService.messages$({sessionId}).subscribe
   //     });
   // }
-  connect() {
+  async connect() {
+    const { sessionId } = await this.services.sessionService.openSession({
+      username: this.username,
+      password: this.password,
+    });
+    this.sessionId = sessionId;
+    const messageStream = await this.services.messageService.getMessageStream({
+      sessionId,
+    });
+    messageStream.subscribe((message) => {
+      this.saveMessage(message);
+      this.listeners.forEach((fn) => fn(message));
+    });
+    return { sessionId };
+  }
+  _connect() {
+    return this.services.sessionService
+      .openSession({
+        username: this.username,
+        password: this.password,
+      })
+      .then(({ sessionId }) => {
+        this.sessionId = sessionId;
+        this.services.messageService
+          .getMessageStream({ sessionId })
+          .subscribe((message) => {
+            this.saveMessage(message);
+            this.listeners.forEach((fn) => fn(message));
+          });
+      });
+  }
+
+  _connect() {
     const { sessionId } = this.services.sessionService.openSession({
       username: this.username,
       password: this.password,
@@ -28,9 +61,16 @@ export class Client {
 
     this.requestMessageStream();
   }
-  disconnect() {
-    this.subscription.unsubscribe();
-    this.services.sessionService.closeSession({ sessionId: this.sessionId });
+  async disconnect() {
+    if (!this.sessionId) {
+      throw new Error("not connected");
+    }
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
+    await this.services.sessionService.closeSession({
+      sessionId: this.sessionId,
+    });
     this.sessionId = null;
   }
   requestMessageStream() {
@@ -44,17 +84,15 @@ export class Client {
         this.listeners.forEach((fn) => fn(message));
       });
   }
-  send({ to, body }) {
+  async send({ to, body }) {
     if (!this.sessionId) {
-      // throw new Error("not connected");
-      return Promise.reject(new Error("not connected"));
+      throw new Error("not connected");
     }
     const message = { to, body };
-    this.services.messageService.forward({
+    await this.services.messageService.forward({
       sessionId: this.sessionId,
-      ...message,
+      message,
     });
-    this.saveMessage(message);
   }
   saveMessage(message) {
     this.messages.push(message);
