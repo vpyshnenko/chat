@@ -38,4 +38,7 @@ c3.onMessage((msg) => console.log("c3 incoming message: ", msg));
   await c1.send({ to: u2.username, body: "How are you?" });
   await c2.connect();
   await c2.send({ to: u1.username, body: "Hi, I'm ok" });
+  await c1.disconnect();
+  console.log("CONNECT");
+  await c1.connect();
 })();
