@@ -11,15 +11,6 @@ export class Client {
     this.services = { sessionService, messageService };
     this.sessionId = null;
   }
-  //TODO disconnect
-  // connect_() {
-  //   clientAuthService
-  //     .auth({ username: this.username, password: this.password })
-  //     .then(({ sessionId }) => {
-  // 	this.sessionId = sessionId
-  //       clientMessageService.messages$({sessionId}).subscribe
-  //     });
-  // }
   async connect() {
     const { sessionId } = await this.services.sessionService.openSession({
       username: this.username,
@@ -34,32 +25,6 @@ export class Client {
       this.listeners.forEach((fn) => fn(message));
     });
     return { sessionId };
-  }
-  _connect() {
-    return this.services.sessionService
-      .openSession({
-        username: this.username,
-        password: this.password,
-      })
-      .then(({ sessionId }) => {
-        this.sessionId = sessionId;
-        this.services.messageService
-          .getMessageStream({ sessionId })
-          .subscribe((message) => {
-            this.saveMessage(message);
-            this.listeners.forEach((fn) => fn(message));
-          });
-      });
-  }
-
-  _connect() {
-    const { sessionId } = this.services.sessionService.openSession({
-      username: this.username,
-      password: this.password,
-    });
-    this.sessionId = sessionId;
-
-    this.requestMessageStream();
   }
   async disconnect() {
     if (!this.sessionId) {
