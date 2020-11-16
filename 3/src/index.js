@@ -1,90 +1,14 @@
-import { createMicroservice, ASYNC_MODEL_TYPES } from "./libs/scalecube.js";
-import { UserService } from "./server/UserService.js";
-import { SessionService } from "./server/SessionService.js";
-import { MessageService } from "./server/MessageService.js";
+import { createMicroservice } from "./libs/scalecube.js";
+import { MySeedAddress } from "./seed.js";
+import { bootstrap } from "./bootstrap.js";
 import { Client } from "./client/client.js";
-export const MySeedAddress = "seed";
+import {
+  userServiceDefinition,
+  sessionServiceDefinition,
+  messageServiceDefinition,
+} from "./definitions.js";
 
-// Create a service
-createMicroservice({
-  address: MySeedAddress,
-});
-
-export const userServiceDefinition = {
-  serviceName: "UserService",
-  methods: {
-    register: {
-      asyncModel: ASYNC_MODEL_TYPES.REQUEST_RESPONSE,
-    },
-    authorize: {
-      asyncModel: ASYNC_MODEL_TYPES.REQUEST_RESPONSE,
-    },
-    isRegistered: {
-      asyncModel: ASYNC_MODEL_TYPES.REQUEST_RESPONSE,
-    },
-  },
-};
-export const sessionServiceDefinition = {
-  serviceName: "SessionService",
-  methods: {
-    openSession: {
-      asyncModel: ASYNC_MODEL_TYPES.REQUEST_RESPONSE,
-    },
-    closeSession: {
-      asyncModel: ASYNC_MODEL_TYPES.REQUEST_RESPONSE,
-    },
-    validate: {
-      asyncModel: ASYNC_MODEL_TYPES.REQUEST_RESPONSE,
-    },
-    getUser: {
-      asyncModel: ASYNC_MODEL_TYPES.REQUEST_RESPONSE,
-    },
-  },
-};
-export const messageServiceDefinition = {
-  serviceName: "MessageService",
-  methods: {
-    forward: {
-      asyncModel: ASYNC_MODEL_TYPES.REQUEST_RESPONSE,
-    },
-    getMessageStream: {
-      asyncModel: ASYNC_MODEL_TYPES.REQUEST_STREAM,
-    },
-  },
-};
-// Create a service
-createMicroservice({
-  services: [
-    {
-      definition: userServiceDefinition,
-      reference: new UserService(),
-    },
-    {
-      definition: sessionServiceDefinition,
-      reference: ({ createProxy }) => {
-        const userService = createProxy({
-          serviceDefinition: userServiceDefinition,
-        });
-        return new SessionService({ services: { userService } });
-      },
-    },
-    {
-      definition: messageServiceDefinition,
-      reference: ({ createProxy }) => {
-        const userService = createProxy({
-          serviceDefinition: userServiceDefinition,
-        });
-        const sessionService = createProxy({
-          serviceDefinition: sessionServiceDefinition,
-        });
-        return new MessageService({
-          services: { userService, sessionService },
-        });
-      },
-    },
-  ],
-  seedAddress: MySeedAddress,
-});
+bootstrap();
 
 const microservice = createMicroservice({ seedAddress: MySeedAddress });
 
